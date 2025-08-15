@@ -1,0 +1,5 @@
+- name: Reload systemd
+  command: systemctl daemon-reload
+
+- name: Enable Apache
+  command: systemctl enable apache2-custom

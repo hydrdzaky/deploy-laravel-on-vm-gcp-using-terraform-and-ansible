@@ -1,0 +1,33 @@
+# tasks file for db
+- name: Install database packages                  # install packages
+  apt:
+    name: '{{ item }}'  
+    state: present  
+  loop:
+      - mariadb-server
+      - mariadb-client
+      - python3-pymysql            
+  notify: "enstart mysql"                              # mentrigger hendlers start and enable yang ada di file handlers/main.yml
+
+- name: Update root password                           
+  mysql_user:
+    name: root                                          # user root mysql
+    password: "{{ psroot }}"                            # diberikan password yang ada di file vars/main.yml
+    host: "%"                                           
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+ 
+- name: Create Database
+  mysql_db:
+    name:  "{{ db_name }}"                              # nama database diambil dari file vars/main.yml
+    state: present
+    login_user: root
+    login_password: "{{ psroot }}"                      # login password root diambil dari file vars/main.yml
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+ 
+- name: Create User For Laravel
+  mysql_user:                                           
+    name: "{{ db_user }}"                               # db_user diambil dari file vars/main.yml
+    password: "{{ db_pass }}"                           # db_pass diambil dari file vars/main.yml 
+    priv: "{{ db_name}}.*:ALL"                         # memberikan akses penu terhadap database 
+    host: "{{ host }}"                              # host diambil dari file vars/main.yml
+    login_unix_socket: /var/run/mysqld/mysqld.sock

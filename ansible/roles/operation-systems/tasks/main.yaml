@@ -1,0 +1,19 @@
+    - name: "Update OS Debian"
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: "Install build dependencies"
+      apt:
+        name: '{{ item }}'
+        state: present
+      loop:
+        - build-essential
+        - libpcre3
+        - libpcre3-dev
+        - libssl-dev
+        - libapr1-dev
+        - libaprutil1-dev
+        - xz-utils
+        - tar
+        - wget

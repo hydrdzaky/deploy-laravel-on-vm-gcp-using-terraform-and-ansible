@@ -1,0 +1,82 @@
+  - name: Download Apache source
+    get_url:
+      url: "https://archive.apache.org/dist/httpd/httpd-2.4.56.tar.gz"
+      dest: "/tmp/httpd-2.4.56.tar.gz"
+
+  - name: Extract Apache source
+    unarchive:
+      src: "/tmp/httpd-2.4.56.tar.gz"
+      dest: "/tmp/"
+      remote_src: yes
+
+  - name: Configure Apache
+    command: ./configure --prefix=/usr/local/apache2 --enable-so --enable-ssl --with-mpm=event
+    args:
+      chdir: "/tmp/httpd-2.4.56"
+
+  - name: Compile Apache
+    command: make
+    args:
+      chdir: "/tmp/httpd-2.4.56"
+
+  - name: Install Apache
+    command: make install
+    args:
+      chdir: "/tmp/httpd-2.4.56"
+
+  - name: Ensure apachectl is executable
+    file:
+      path: "/usr/local/apache2/bin/apachectl"
+      mode: '0755'
+      state: file
+
+  - name: Create systemd service for Apache
+    copy:
+      dest: /etc/systemd/system/apache2-custom.service
+      content: |
+        [Unit]
+        Description=Apache HTTPD 2.4.56
+        After=network.target
+
+        [Service]
+        Type=forking
+        ExecStart=/usr/local/apache2/bin/apachectl start
+        ExecStop=/usr/local/apache2/bin/apachectl stop
+        ExecReload=/usr/local/apache2/bin/apachectl graceful
+        PIDFile=/usr/local/apache2/logs/httpd.pid
+        RemainAfterExit=yes
+
+        [Install]
+        WantedBy=multi-user.target
+    notify:
+      - Reload systemd
+      - Enable Apache
+
+  - name: Start Apache
+    command: "/usr/local/apache2/bin/apachectl start"
+
+  # - name: Add LoadModule proxy_module to httpd.conf
+  #   lineinfile:
+  #     path: /usr/local/apache2/conf/httpd.conf
+  #     line: 'LoadModule proxy_module modules/mod_proxy.so'
+  #     insertafter: EOF
+
+  # - name: Add LoadModule proxy_http_module to httpd.conf
+  #   lineinfile:
+  #     path: /usr/local/apache2/conf/httpd.conf
+  #     line: 'LoadModule proxy_http_module modules/mod_proxy_http.so'
+  #     insertafter: EOF
+
+  - name: edit httpd.conf
+    template:
+      src: httpd.conf.j2
+      dest: /usr/local/apache2/conf/extra/httpd-vhosts.conf 
+
+  - name: Enable Apache vhosts include in httpd.conf
+    replace:
+      path: /usr/local/apache2/conf/httpd.conf
+      regexp: '^#Include conf/extra/httpd-vhosts.conf'
+      replace: 'Include conf/extra/httpd-vhosts.conf'
+    
+  - name: Restart custom Apache
+    command: /usr/local/apache2/bin/apachectl restart

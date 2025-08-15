@@ -1,0 +1,22 @@
+    - name: Download Node.js tarball
+      get_url:
+        url: "https://nodejs.org/dist/v20.13.1/node-v20.13.1-linux-x64.tar.xz"
+        dest: "/tmp/node-v20.13.1-linux-x64.tar.xz"
+        mode: '0644'
+
+    - name: Extract Node.js tarball
+      unarchive:
+        src: "/tmp/node-v20.13.1-linux-x64.tar.xz"
+        dest: "/usr/local/"
+        remote_src: yes
+
+    - name: Create symlinks for node and npm
+      file:
+        src: "/usr/local/node-v20.13.1-linux-x64/bin/{{ item }}"
+        dest: "/usr/bin/{{ item }}"
+        state: link
+        force: yes
+      loop:
+        - node
+        - npm
+        - npx

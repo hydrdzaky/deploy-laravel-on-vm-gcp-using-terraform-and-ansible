@@ -1,0 +1,16 @@
+laravel_app_name: example-app
+laravel_app_path: /var/www/{{ laravel_app_name }}
+laravel_user: haydar
+db_name: laravel
+db_user: haydar
+db_password: laravel
+
+access_folder:
+- /var/www/example-app/storage
+- /var/www/example-app/public
+- /var/www/example-app/boostrap/cache
+- /var/www/example-app
+
+http_port: 80
+dir_path: /var/www/example-app/public
+

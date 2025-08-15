@@ -1,0 +1,10 @@
+- name: "Configure Server (Debian)"
+  hosts: 34.128.91.21
+  become: true
+  roles:
+    # - operation-systems
+    - apache
+    # - php
+    # - node
+    # - database
+    - laravel

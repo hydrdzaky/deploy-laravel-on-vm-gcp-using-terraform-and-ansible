@@ -1,0 +1,13 @@
+composer_global_bin: "{{ ansible_env.HOME }}/.config/composer/vendor/bin"
+db_name: laravel
+db_user: haydar
+db_password: laravel
+db_host: localhost
+
+access_folder:
+- /var/www/example-app/storage
+- /var/www/example-app/public
+- /var/www/example-app/boostrap/cache
+
+http_port: 80
+dir_path: /var/www/example-app/public

@@ -1,0 +1,11 @@
+# vars file for db
+psroot: haydar
+db_user: haydar
+db_pass: admin
+db_name: laravel
+host: localhost
+
+access_folders:
+  - "{{ laravel_app_path }}/storage"
+  - "{{ laravel_app_path }}/bootstrap/cache"
+  - "{{ laravel_app_path }}/public"

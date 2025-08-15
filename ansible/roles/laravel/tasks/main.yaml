@@ -1,0 +1,78 @@
+- name: Download Composer installer
+  get_url:
+    url: https://getcomposer.org/installer
+    dest: /tmp/composer-setup.php
+
+- name: Install Composer
+  command: php /tmp/composer-setup.php --install-dir=/usr/bin --filename=composer
+
+- name: delete composer.php
+  file:
+    path: /tmp/composer.php
+    state: absent
+
+- name: Ensure Composer global bin is in PATH
+  lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: 'export PATH="$HOME/.config/composer/vendor/bin:$PATH"'
+    state: present
+
+- name: Reload bashrc to update PATH (only for current session)
+  shell: |
+    export PATH="$HOME/.config/composer/vendor/bin:$PATH"
+    source ~/.bashrc
+  args:
+    executable: /bin/bash
+
+- name: Ensure laravel_app_path exists
+  file:
+    path: /var/www/
+    state: directory
+    owner: "{{ laravel_user }}"
+    group: "{{ laravel_user }}"
+    mode: '0755'
+
+- name: Check if Laravel project exists
+  stat:
+    path: /var/www/example-app/artisan
+  register: laravel_folder
+
+- name: create laravel
+  composer:
+    command: create-project
+    arguments:  laravel/laravel example-app
+    prefer_dist: true
+    working_dir: /var/www
+  become_user: haydar
+  register: create_laravel_result
+  when: not laravel_folder.stat.exists
+
+- name: install depencencies
+  composer:
+    command: install
+    arguments: --ignore-platform-reqs
+    working_dir: /var/www/example-app
+  become_user: haydar
+  when: create_laravel_result.changed
+
+- name: Copy file .env
+  template:
+    src: env.j2
+    dest: /var/www/example-app/.env
+
+- name: chmod folder public, storage, and bootsrap/cache
+  file:
+    path: "{{ access_folder }}"
+    state: directory
+    mode: "777"
+
+- name: change group and ownership
+  shell: chown -R www-data:www-data "{{ access_folder }}"
+
+- name: Generate APP_KEY and run migrations
+  shell: |
+    npm install && npm run build
+    php artisan key:generate && php artisan migrate --database=mysql
+  args:
+    chdir: /var/www/example-app
+  become_user: haydar

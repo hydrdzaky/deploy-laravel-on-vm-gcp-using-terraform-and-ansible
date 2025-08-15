@@ -1,0 +1,233 @@
+- name: "Configure Server (Debian)"
+  hosts: 34.128.91.21
+  become: true
+
+  vars:
+    db_connection: mysql
+    db_host: 127.0.0.1
+    db_port: 3306
+    db_database: example_app
+    db_username: root
+    db_password: 
+    db_name: laravel
+
+  tasks:
+    # - name: "Update OS Debian"
+    #   apt:
+    #     update_cache: yes
+    #     cache_valid_time: 3600
+
+    # - name: "Install build dependencies"
+    #   apt:
+    #     name: '{{ item }}'
+    #     state: present
+    #   loop:
+    #       - build-essential
+    #       - libpcre3
+    #       - libpcre3-dev
+    #       - libssl-dev
+    #       - libapr1-dev
+    #       - libaprutil1-dev
+    #       - xz-utils
+    #       - tar
+    #       - wget
+
+    # - name: Download Apache source
+    #   get_url:
+    #     url: "https://archive.apache.org/dist/httpd/httpd-2.4.56.tar.gz"
+    #     dest: "/tmp/httpd-2.4.56.tar.gz"
+
+    # - name: Extract Apache source
+    #   unarchive:
+    #     src: "/tmp/httpd-2.4.56.tar.gz"
+    #     dest: "/tmp/"
+    #     remote_src: yes
+
+    # - name: Configure Apache
+    #   command: ./configure --prefix=/usr/local/apache2 --enable-so --enable-ssl --with-mpm=event
+    #   args:
+    #     chdir: "/tmp/httpd-2.4.56"
+
+    # - name: Compile Apache
+    #   command: make
+    #   args:
+    #     chdir: "/tmp/httpd-2.4.56"
+
+    # - name: Install Apache
+    #   command: make install
+    #   args:
+    #     chdir: "/tmp/httpd-2.4.56"
+
+    # - name: Ensure apachectl is executable
+    #   file:
+    #     path: "/usr/local/apache2/bin/apachectl"
+    #     mode: '0755'
+    #     state: file
+
+    # # - name: Ensure Apache log directory exists
+    # #   file:
+    # #     path: /usr/local/apache2/logs
+    # #     state: directory
+    # #     mode: '0755'
+
+    # - name: Create systemd service for Apache
+    #   copy:
+    #     dest: /etc/systemd/system/apache2-custom.service
+    #     content: |
+    #       [Unit]
+    #       Description=Apache HTTPD 2.4.56
+    #       After=network.target
+
+    #       [Service]
+    #       Type=forking
+    #       ExecStart=/usr/local/apache2/bin/apachectl start
+    #       ExecStop=/usr/local/apache2/bin/apachectl stop
+    #       ExecReload=/usr/local/apache2/bin/apachectl graceful
+    #       PIDFile=/usr/local/apache2/logs/httpd.pid
+    #       RemainAfterExit=yes
+
+    #       [Install]
+    #       WantedBy=multi-user.target
+    #   notify:
+    #     - Reload systemd
+    #     - Enable Apache
+
+    # - name: Start Apache
+    #   command: "/usr/local/apache2/bin/apachectl start"
+
+    # - name: Add LoadModule proxy_module to httpd.conf
+    #   lineinfile:
+    #     path: /usr/local/apache2/conf/httpd.conf
+    #     line: 'LoadModule proxy_module modules/mod_proxy.so'
+    #     insertafter: EOF
+
+    # - name: Add LoadModule proxy_http_module to httpd.conf
+    #   lineinfile:
+    #     path: /usr/local/apache2/conf/httpd.conf
+    #     line: 'LoadModule proxy_http_module modules/mod_proxy_http.so'
+    #     insertafter: EOF
+
+    # - name: Add reverse proxy VirtualHost to httpd.conf
+    #   blockinfile:
+    #     path: /usr/local/apache2/conf/httpd.conf
+    #     block: |
+    #       <VirtualHost *:80>
+    #           ProxyPreserveHost On
+    #           ProxyPass / http://127.0.0.1:8000/
+    #           ProxyPassReverse / http://127.0.0.1:8000/
+    #       </VirtualHost>
+
+    # - name: Restart custom Apache
+    #   command: /usr/local/apache2/bin/apachectl restart
+
+    - name: Add Sury PHP repository (Debian)
+      apt_key:
+        url: https://packages.sury.org/php/apt.gpg
+        state: present
+
+    - name: Add PHP repo to sources.list.d
+      apt_repository:
+        repo: "deb https://packages.sury.org/php/ {{ ansible_distribution_release }} main"
+        state: present
+
+    - name: "Install PHP 8.2 and modules"
+      apt:
+        name: '{{ item }}'
+        state: present
+      loop:
+        - php8.2
+        - php8.2-fpm
+        - php8.2-curl
+        - php8.2-xml
+        - php8.2-mbstring
+        - php8.2-gd
+        - php8.2-imagick
+        - php8.2-imap
+        - php8.2-intl
+        - php8.2-mysql
+        - php8.2-pgsql
+        - php8.2-zip
+      tags: ["web"]
+
+    - name: Download Node.js tarball
+      get_url:
+        url: "https://nodejs.org/dist/v20.13.1/node-v20.13.1-linux-x64.tar.xz"
+        dest: "/tmp/node-v20.13.1-linux-x64.tar.xz"
+        mode: '0644'
+
+    - name: Extract Node.js tarball
+      unarchive:
+        src: "/tmp/node-v20.13.1-linux-x64.tar.xz"
+        dest: "/usr/local/"
+        remote_src: yes
+
+    - name: Create symlinks for node and npm
+      file:
+        src: "/usr/local/node-v20.13.1-linux-x64/bin/{{ item }}"
+        dest: "/usr/bin/{{ item }}"
+        state: link
+        force: yes
+      loop:
+        - node
+        - npm
+        - npx
+
+    - name: Download Composer installer
+      get_url:
+        url: https://getcomposer.org/installer
+        dest: /tmp/composer-setup.php
+
+    - name: Install Composer
+      command: php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
+
+    - name: Ensure Composer global bin is in PATH
+      lineinfile:
+        path: ~/.bashrc
+        line: 'export PATH="$HOME/.config/composer/vendor/bin:$PATH"'
+        state: present
+
+    - name: Install MySQL Server
+      apt:
+        name:
+          - mariadb-server
+          - mariadb-client
+          - python3-pymysql
+        state: present
+        update_cache: yes
+
+    - name: Start & enable MySQL
+      service:
+        name: mysql
+        state: started
+        enabled: true
+
+    - name: Create MySQL user
+      community.mysql.mysql_user:
+        name: "{{ db_username }}"
+        password: "{{ db_password }}"
+        priv: "{{ db_name }}.*:ALL"
+        state: present
+        host: "{{ db_host | default('%') }}"  
+
+    - name: Create MySQL database
+      community.mysql.mysql_db:
+        name: "{{db_name}}"
+        state: present
+
+    - name: Update cache after adding PHP repo
+      apt:
+        update_cache: yes
+
+    - name: Reload bashrc to update PATH
+      shell: |
+        export PATH="$HOME/.config/composer/vendor/bin:$PATH"
+        source ~/.bashrc
+      args:
+        executable: /bin/bash  
+      
+  handlers:
+    - name: Reload systemd
+      command: systemctl daemon-reload
+
+    - name: Enable Apache
+      command: systemctl enable apache2-custom
