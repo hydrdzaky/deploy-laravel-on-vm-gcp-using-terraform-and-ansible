@@ -6,11 +6,6 @@
 - name: Install Composer
   command: php /tmp/composer-setup.php --install-dir=/usr/bin --filename=composer
 
-- name: delete composer.php
-  file:
-    path: /tmp/composer.php
-    state: absent
-
 - name: Ensure Composer global bin is in PATH
   lineinfile:
     path: "{{ ansible_env.HOME }}/.bashrc"
@@ -75,4 +70,13 @@
     php artisan key:generate && php artisan migrate --database=mysql
   args:
     chdir: /var/www/example-app
-  become_user: haydar
+    
+- name: Set write permission for storage
+  command: chmod -R guo+w storage
+  args:
+    chdir: /var/www/example-app
+
+- name: Clear Laravel cache
+  command: php artisan cache:clear
+  args:
+    chdir: /var/www/example-app

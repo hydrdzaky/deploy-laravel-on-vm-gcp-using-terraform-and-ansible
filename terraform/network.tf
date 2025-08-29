@@ -53,11 +53,23 @@ resource "google_compute_firewall" "allow-ssh" {
   project       = var.project_id
   name          = "allow-ssh"
   network       = google_compute_network.vpc_network.name
-  description   = "Allow incoming ssh traffic on port 443"
+  description   = "Allow incoming SSH traffic on port 22"
   source_ranges = ["0.0.0.0/0"]
   allow {
     protocol = "tcp"
     ports    = ["22"]
   }
   target_tags = ["allow-ssh"]
+}
+
+resource "google_compute_firewall" "allow-icmp" {
+  project       = var.project_id
+  name          = "allow-icmp"
+  network       = google_compute_network.vpc_network.name
+  description   = "Allow incoming ICMP traffic"
+  source_ranges = ["0.0.0.0/0"]
+  allow {
+    protocol = "icmp"
+  }
+  target_tags = ["allow-icmp"]
 }

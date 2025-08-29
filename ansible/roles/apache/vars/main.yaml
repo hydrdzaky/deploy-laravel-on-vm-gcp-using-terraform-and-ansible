@@ -1,0 +1,5 @@
+    apache_version: "2.4.56"
+    apache_prefix: "/usr/local/apache2"
+    apache_url: "https://archive.apache.org/dist/httpd/httpd-{{ apache_version }}.tar.gz"
+    apache_tar: "/tmp/httpd-{{ apache_version }}.tar.gz"
+    apache_src_dir: "/tmp/httpd-{{ apache_version }}"

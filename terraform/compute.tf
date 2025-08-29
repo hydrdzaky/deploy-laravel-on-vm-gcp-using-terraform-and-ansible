@@ -31,8 +31,6 @@ resource "google_compute_instance" "vm-instance" {
       #!/bin/bash
       apt-get update
       apt-get install -y ansible
-      cd /home/${var.gce_ssh_user}
-      ansible-playbook /home/${var.gce_ssh_user}/playbook-main.yaml
     EOF
   }
 }

@@ -26,10 +26,11 @@
     DocumentRoot /var/www/example-app/public
     
     <Directory /var/www/example-app/public>
-         DirectoryIndex index.php
+         DirectoryIndex index.html index.php
          AllowOverride All
          Require all granted
-         Allow from all
     </Directory>
 
+   ErrorLog /usr/local/apache2/logs/error.log
+   CustomLog /usr/local/apache2/logs/access.log combined
 </VirtualHost>

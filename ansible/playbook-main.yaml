@@ -2,9 +2,9 @@
   hosts: 34.128.91.21
   become: true
   roles:
-    # - operation-systems
+    - operation-systems
     - apache
-    # - php
-    # - node
-    # - database
+    - php
+    - node
+    - database
     - laravel
